@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerability Scanner</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        h1 { color: #d9534f; }
+        button { padding: 10px 20px; font-size: 16px; margin: 10px; cursor: pointer; }
+        input { padding: 5px; font-size: 14px; }
+        #loading { display: none; color: blue; font-size: 18px; }
+        #report-links { display: none; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Simple Vulnerability Scanner</h1>
+
+    <button onclick="runScan()">Run Scan Now</button>
+    <p id="loading">⏳ Scanning... Please wait.</p>
+
+    <br><br>
+    <h2>⏰ Schedule a Daily Scan</h2>
+    <form onsubmit="scheduleScan(event)">
+        <input type="text" id="scan_time" placeholder="Enter time (HH:MM)" required>
+        <button type="submit">Schedule Scan</button>
+    </form>
+
+    <p id="result"></p>
+
+    <div id="report-links">
+        <h3>📂 Download Reports:</h3>
+        <a id="pdf-link" href="#" download>📄 Download PDF</a><br>
+        <a id="csv-link" href="#" download>📊 Download CSV</a><br>
+        <a id="json-link" href="#" download>📜 Download JSON</a><br>
+        <a id="html-link" href="#" download>🌐 Download HTML</a>
+    </div>
+
+    <script>
+        function runScan() {
+            document.getElementById("loading").style.display = "block"; // Show "Loading..." message
+            document.getElementById("report-links").style.display = "none"; // Hide previous reports
+            
+            fetch("/run_scan", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("loading").style.display = "none"; // Hide "Loading..." message
+                    document.getElementById("result").innerText = data.message;
+
+                    // Show and update report download links
+                    document.getElementById("report-links").style.display = "block";
+                    document.getElementById("pdf-link").href = "/download/pdf";
+                    document.getElementById("csv-link").href = "/download/csv";
+                    document.getElementById("json-link").href = "/download/json";
+                    document.getElementById("html-link").href = "/download/html";
+                });
+        }
+
+        function scheduleScan(event) {
+            event.preventDefault();
+            let scanTime = document.getElementById("scan_time").value;
+
+            fetch("/schedule_scan", {
+                method: "POST",
+                body: new URLSearchParams({ "scan_time": scanTime }),
+                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            })
+            .then(response => response.json())
+            .then(data => document.getElementById("result").innerText = data.message);
+        }
+    </script>
+</body>
+</html>
