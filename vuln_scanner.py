@@ -24,11 +24,11 @@ def check_installed_vulnerabilities(software_list):
 
         vulnerabilities = fetch_nvd_vulnerabilities(name)
 
-        print(f"Found {len(vulnerabilities)} vulnerabilities for {name}\n")
+        print(f"Found {len(vulnerabilities)} High/Critical vulnerabilities for {name}\n")
 
         if vulnerabilities:
             for vuln in vulnerabilities:
-                results.append([name, version, vuln["cve_id"], vuln["description"]])
+                results.append([name, version, vuln["cve_id"], vuln["severity"], vuln["description"]])
 
         time.sleep(5)  # Wait 5 seconds to avoid API rate limits
 
@@ -41,20 +41,20 @@ def generate_vulnerability_report(vulnerabilities):
     - Saves the report to CSV and JSON.
     """
     if not vulnerabilities:
-        print("\n✅ No known vulnerabilities found for installed software.")
+        print("\n✅ No known High/Critical vulnerabilities found for installed software.")
         return
     
-    print("\n=== 🔥 Vulnerability Report 🔥 ===\n")
+    print("\n=== 🔥 High & Critical Vulnerability Report 🔥 ===\n")
 
     # Limit description length for better readability
     formatted_vulnerabilities = [
-        [software, version, cve_id, shorten_description(description)]
-        for software, version, cve_id, description in vulnerabilities
+        [software, version, cve_id, severity, shorten_description(description)]
+        for software, version, cve_id, severity, description in vulnerabilities
     ]
 
     print(tabulate(
         formatted_vulnerabilities, 
-        headers=["Software", "Version", "CVE ID", "Description"],
+        headers=["Software", "Version", "CVE ID", "Severity", "Description"],
         tablefmt="grid"
     ))
 
@@ -62,19 +62,19 @@ def generate_vulnerability_report(vulnerabilities):
     export_to_csv(vulnerabilities)
     export_to_json(vulnerabilities)
 
-def export_to_csv(vulnerabilities, filename="vulnerabilities.csv"):
+def export_to_csv(vulnerabilities, filename="vulnerabilities_filtered.csv"):
     """Exports vulnerabilities to a CSV file."""
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
-        writer.writerow(["Software", "Version", "CVE ID", "Description"])  # Header
+        writer.writerow(["Software", "Version", "CVE ID", "Severity", "Description"])  # Header
         writer.writerows(vulnerabilities)
     print(f"\n📂 Report saved as {filename}")
 
-def export_to_json(vulnerabilities, filename="vulnerabilities.json"):
+def export_to_json(vulnerabilities, filename="vulnerabilities_filtered.json"):
     """Exports vulnerabilities to a JSON file."""
     json_data = [
-        {"Software": s, "Version": v, "CVE ID": cve, "Description": desc}
-        for s, v, cve, desc in vulnerabilities
+        {"Software": s, "Version": v, "CVE ID": cve, "Severity": sev, "Description": desc}
+        for s, v, cve, sev, desc in vulnerabilities
     ]
     with open(filename, mode="w", encoding="utf-8") as file:
         json.dump(json_data, file, indent=4)
