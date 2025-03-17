@@ -1,20 +1,22 @@
+import sqlite3
 from flask import Flask, render_template, request, jsonify, send_file
 import threading
 import schedule
 import time
 import os
-from vuln_scanner import run_vulnerability_scan, set_schedule
+from vuln_scanner import run_vulnerability_scan
 
 app = Flask(__name__)
 
-# Background thread to run scheduled tasks
-def run_scheduler():
-    while True:
-        schedule.run_pending()
-        time.sleep(60)  # Check for scheduled tasks every minute
+# Connect to SQLite database (creates if not exists)
+def init_db():
+    conn = sqlite3.connect("schedules.db")
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS schedules (id INTEGER PRIMARY KEY, scan_time TEXT)''')
+    conn.commit()
+    conn.close()
 
-scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
-scheduler_thread.start()
+init_db()  # Initialize database on startup
 
 @app.route("/")
 def home():
@@ -25,25 +27,20 @@ def home():
 def run_scan():
     """Runs an immediate vulnerability scan when the button is clicked."""
     run_vulnerability_scan()
-
-    # Get filenames for download
-    reports = {
-        "pdf": "vulnerabilities_report.pdf",
-        "csv": "vulnerabilities_filtered.csv",
-        "json": "vulnerabilities_filtered.json",
-        "html": "vulnerabilities_report.html",
-    }
-
-    return jsonify({
-        "message": "Scan completed! Download the reports below.",
-        "reports": reports
-    })
+    return jsonify({"message": "Scan completed! Download the reports below."})
 
 @app.route("/schedule_scan", methods=["POST"])
 def schedule_scan():
-    """Allows the user to schedule a daily scan from the web UI."""
-    scan_time = request.form.get("scan_time")  
-    set_schedule(scan_time)  
+    """Stores the user-scheduled scan time in the database."""
+    scan_time = request.form.get("scan_time")
+    
+    conn = sqlite3.connect("schedules.db")
+    c = conn.cursor()
+    c.execute("DELETE FROM schedules")  # Remove old schedules (only allow one scan time)
+    c.execute("INSERT INTO schedules (scan_time) VALUES (?)", (scan_time,))
+    conn.commit()
+    conn.close()
+
     return jsonify({"message": f"Scan scheduled daily at {scan_time}."})
 
 @app.route("/download/<file_type>")
