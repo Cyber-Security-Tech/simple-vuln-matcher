@@ -44,7 +44,7 @@ def fetch_nvd_vulnerabilities(software_name):
         response.raise_for_status()
         print(f"Received API Response: {response.status_code}")
         data = response.json()
-
+        print(f"🔍 DEBUG: API Response for {software_name} -> {data}")  # Print full response
         filtered_vulnerabilities = []
         
         if "vulnerabilities" in data:
