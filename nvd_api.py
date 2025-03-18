@@ -32,6 +32,8 @@ def fetch_nvd_vulnerabilities(software_name):
     }
 
     try:
+        print(f"Requesting NVD API: {base_url} with params: {params}")
+
         response = requests.get(base_url, headers=headers, params=params)
         response.raise_for_status()
         data = response.json()
