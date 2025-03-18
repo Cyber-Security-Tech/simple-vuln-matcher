@@ -60,7 +60,8 @@ def index():
                 print(f"✅ Scan scheduled daily at {scan_time}. The report will be sent to {email}.")
                 message = f"✅ Scan scheduled daily at {scan_time}. The report will be sent to {email}."
 
-    return render_template("index.html", message=message)
+    reports_ready = check_reports_exist()
+    return render_template("index.html", message=message, reports_ready=reports_ready)
 
 @app.route("/run_scan", methods=["POST"])
 def run_scan():
@@ -68,7 +69,7 @@ def run_scan():
     print("🚀 Running scan now...")
     run_vulnerability_scan()
     print("✅ Scan completed!")
-    return jsonify({"message": "Scan completed!"})
+    return jsonify({"message": "Scan completed!", "reports_ready": check_reports_exist()})
 
 @app.route("/check_reports")
 def check_reports():
