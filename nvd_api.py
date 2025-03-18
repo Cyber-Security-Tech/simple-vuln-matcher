@@ -19,6 +19,11 @@ def clean_software_name(name):
     return name
 
 def fetch_nvd_vulnerabilities(software_name):
+    print(f"Using API Key: {API_KEY[:5]}**** (length: {len(API_KEY)})")
+    print(f"Searching vulnerabilities for: {software_name}")
+    print(f"API Response Code: {response.status_code}")
+    print(f"Raw API Response: {response.json()}")
+
     """Fetch vulnerabilities from NVD API based on software name and filter by severity."""
     base_url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     
