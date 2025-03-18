@@ -47,7 +47,6 @@
             <span class="spinner">🔄</span> Running scan... Please wait.
         </p>
         
-
         <hr> <!-- 👈 Thin separator for visual clarity -->
 
         <h2>📂 Download Reports</h2>
@@ -71,6 +70,10 @@
 
             <button type="submit" name="schedule_scan">📅 Schedule Scan</button>
         </form>
+
+        {% if schedule_message %}
+        <p style="color: green; font-weight: bold;">{{ schedule_message }}</p>
+        {% endif %}
 
         <hr> <!-- 👈 Separator before cancel button -->
 

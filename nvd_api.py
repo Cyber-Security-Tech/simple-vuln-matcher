@@ -2,9 +2,7 @@ import requests
 import time
 
 # 🔒 Replace with your actual NVD API key (KEEP IT PRIVATE!)
-import os
-API_KEY = os.getenv("NVD_API_KEY")  # Read from environment variables
-
+API_KEY = "3f71c4da-ea43-4eaa-a9fd-85668036d87d"
 
 def clean_software_name(name):
     """Normalize software names for better NVD API searches."""
@@ -21,11 +19,6 @@ def clean_software_name(name):
     return name
 
 def fetch_nvd_vulnerabilities(software_name):
-    print(f"Using API Key: {API_KEY[:5]}**** (length: {len(API_KEY)})")
-    print(f"Searching vulnerabilities for: {software_name}")
-    print(f"API Response Code: {response.status_code}")
-    print(f"Raw API Response: {response.json()}")
-
     """Fetch vulnerabilities from NVD API based on software name and filter by severity."""
     base_url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
     
@@ -39,12 +32,10 @@ def fetch_nvd_vulnerabilities(software_name):
     }
 
     try:
-        print(f"Requesting NVD API: {base_url} with params: {params}")
         response = requests.get(base_url, headers=headers, params=params)
         response.raise_for_status()
-        print(f"Received API Response: {response.status_code}")
         data = response.json()
-        print(f"🔍 DEBUG: API Response for {software_name} -> {data}")  # Print full response
+
         filtered_vulnerabilities = []
         
         if "vulnerabilities" in data:

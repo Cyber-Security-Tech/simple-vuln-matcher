@@ -44,6 +44,7 @@ def check_reports_exist():
 def index():
     """Handles the main page and user interactions."""
     message = ""
+    schedule_message = ""
 
     if request.method == "POST":
         if "run_scan" in request.form:
@@ -57,11 +58,10 @@ def index():
             email = request.form.get("email")
             if scan_time and email:
                 save_schedule(scan_time, email)
-                print(f"✅ Scan scheduled daily at {scan_time}. The report will be sent to {email}.")
-                message = f"✅ Scan scheduled daily at {scan_time}. The report will be sent to {email}."
+                print(f"✅ Scan scheduled at {scan_time}. The report will be sent to {email}.")
+                schedule_message = f"✅ Scan scheduled at {scan_time}. Reports will be emailed to {email}."
 
-    reports_ready = check_reports_exist()
-    return render_template("index.html", message=message, reports_ready=reports_ready)
+    return render_template("index.html", message=message, schedule_message=schedule_message)
 
 @app.route("/run_scan", methods=["POST"])
 def run_scan():
@@ -69,7 +69,7 @@ def run_scan():
     print("🚀 Running scan now...")
     run_vulnerability_scan()
     print("✅ Scan completed!")
-    return jsonify({"message": "Scan completed!", "reports_ready": check_reports_exist()})
+    return jsonify({"message": "Scan completed!"})
 
 @app.route("/check_reports")
 def check_reports():

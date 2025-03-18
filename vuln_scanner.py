@@ -27,21 +27,13 @@ def check_installed_vulnerabilities(software_list):
 
         vulnerabilities = fetch_nvd_vulnerabilities(name)
 
+        print(f"Found {len(vulnerabilities)} High/Critical vulnerabilities for {name}\n")
+
         if vulnerabilities:
-            filtered_vulns = [
-                vuln for vuln in vulnerabilities
-                if vuln.get("severity", "").upper() in ["HIGH", "CRITICAL"]
-            ]
-            
-            print(f"✅ Found {len(filtered_vulns)} high/critical vulnerabilities for {name}\n")
-            for vuln in filtered_vulns:
+            for vuln in vulnerabilities:
                 results.append([name, version, vuln["cve_id"], vuln["severity"], vuln["description"]])
-        else:
-            print(f"❌ No vulnerabilities found for {name}\n")
 
         time.sleep(5)  # Wait 5 seconds to avoid API rate limits
-
-    print("\nDEBUG: Vulnerabilities Found ->", json.dumps(results, indent=2))  # ✅ Debugging
 
     return results
 
