@@ -2,7 +2,9 @@ import requests
 import time
 
 # 🔒 Replace with your actual NVD API key (KEEP IT PRIVATE!)
-API_KEY = "3f71c4da-ea43-4eaa-a9fd-85668036d87d"
+import os
+API_KEY = os.getenv("NVD_API_KEY")  # Read from environment variables
+
 
 def clean_software_name(name):
     """Normalize software names for better NVD API searches."""
