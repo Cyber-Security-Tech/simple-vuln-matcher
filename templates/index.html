@@ -5,71 +5,125 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vulnerability Scanner</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-        h1 { color: #d9534f; }
-        button { padding: 10px 20px; font-size: 16px; margin: 10px; cursor: pointer; }
-        input { padding: 5px; font-size: 14px; margin: 5px; }
-        #loading { display: none; color: blue; font-size: 18px; }
-        #result { font-size: 18px; color: green; margin-top: 10px; }
-        #report-links { display: none; margin-top: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #343a40;
+        }
+        form {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        p {
+            font-weight: bold;
+        }
+        #loading {
+            display: none;
+            font-weight: bold;
+            color: #ff6600;
+            margin: 10px;
+        }
+        #report-message {
+            font-weight: bold;
+            color: #dc3545;
+        }
+        #report-links {
+            display: none;
+        }
     </style>
-</head>
-<body>
-    <h1>🔍 Simple Vulnerability Scanner</h1>
-
-    <!-- Button to run an immediate scan -->
-    <button onclick="runScan()">Run Scan Now</button>
-    <p id="loading">⏳ Scanning... Please wait.</p>
-
-    <br><br>
-
-    <!-- Schedule Scan Section -->
-    <h2>⏰ Schedule a Daily Scan</h2>
-    <form onsubmit="scheduleScan(event)">
-        <input type="text" id="scan_time" placeholder="Enter time (HH:MM, 24-hour format)" required>
-        <input type="email" id="email" placeholder="Enter your email address" required>
-        <button type="submit">Schedule Scan</button>
-    </form>
-
-    <p id="result"></p>
-
-    <!-- Download Report Section -->
-    <h2>📂 Download Reports</h2>
-    <div id="report-links">
-        <a href="/download/pdf" download><button>📄 Download PDF Report</button></a>
-        <a href="/download/csv" download><button>📊 Download CSV Report</button></a>
-        <a href="/download/json" download><button>📜 Download JSON Report</button></a>
-        <a href="/download/html" download><button>🌐 Download HTML Report</button></a>
-    </div>
-
     <script>
-        function runScan() {
+        async function startScan() {
             document.getElementById("loading").style.display = "block";
+            document.getElementById("report-message").style.display = "none";
+            document.getElementById("report-links").style.display = "none";
 
-            fetch("/run_scan", { method: "POST" })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("loading").style.display = "none";
-                alert(data.message);
-                document.getElementById("report-links").style.display = "block"; // Show report download buttons
-            });
+            let response = await fetch("/run_scan", { method: "POST" });
+            let result = await response.json();
+            console.log(result.message);
+
+            startChecking();
         }
 
-        function scheduleScan(event) {
-            event.preventDefault();
-            let scanTime = document.getElementById("scan_time").value;
-            let email = document.getElementById("email").value;
+        async function checkReports() {
+            let response = await fetch('/check_reports');
+            let data = await response.json();
+            console.log("Checking for reports:", data.reports_ready);
+            
+            if (data.reports_ready) {
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("report-message").innerText = "✅ Reports are available! Download below.";
+                document.getElementById("report-links").style.display = "block";
+            } else {
+                setTimeout(checkReports, 3000);
+            }
+        }
 
-            fetch("/schedule_scan", {
-                method: "POST",
-                body: new URLSearchParams({ "scan_time": scanTime, "email": email }),
-                headers: { "Content-Type": "application/x-www-form-urlencoded" }
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("result").innerText = data.message;
-            });
+        function startChecking() {
+            setTimeout(checkReports, 3000);
         }
     </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Vulnerability Scanner</h1>
+
+        <!-- Run Scan Now -->
+        <h2>Run Scan Now</h2>
+        <button onclick="startScan()">Run Scan Now</button>
+
+        <!-- Loading Indicator -->
+        <p id="loading">🔄 Running scan... Please wait.</p>
+
+        <!-- Download Reports -->
+        <h2>Download Reports</h2>
+        <p id="report-message">📂 Reports will be available when ready.</p>
+        <div id="report-links">
+            <p>Click below to download the latest reports:</p>
+            <a href="/download/csv"><button>Download CSV</button></a>
+            <a href="/download/json"><button>Download JSON</button></a>
+            <a href="/download/pdf"><button>Download PDF</button></a>
+        </div>
+
+        <!-- Schedule a Daily Scan -->
+        <h2>Schedule a Daily Scan</h2>
+        <form method="post" action="/">
+            <label for="scan_time">Select Time (HH:MM 24hr):</label>
+            <input type="time" id="scan_time" name="scan_time" required>
+            <label for="email">Enter Email:</label>
+            <input type="email" id="email" name="email" required>
+            <button type="submit" name="schedule_scan">Schedule Scan</button>
+        </form>
+
+        <!-- Cancel Scheduled Scan -->
+        <h2>Cancel Scheduled Scan</h2>
+        <form method="post" action="/delete_schedule">
+            <button type="submit">Cancel Scheduled Scan</button>
+        </form>
+    </div>
 </body>
 </html>

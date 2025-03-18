@@ -1,67 +1,108 @@
-import sqlite3
-from flask import Flask, render_template, request, jsonify, send_file
 import os
+import sqlite3
+from flask import Flask, render_template, request, redirect, send_file, jsonify
 from vuln_scanner import run_vulnerability_scan
+from email_sender import send_email
 
 app = Flask(__name__)
 
-# Initialize database
-def init_db():
-    """Creates or updates the schedules database to store scan time and email."""
-    conn = sqlite3.connect("schedules.db")
+DB_FILE = "schedules.db"
+
+# Ensure database exists
+if not os.path.exists(DB_FILE):
+    conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS schedules (
-        id INTEGER PRIMARY KEY, 
-        scan_time TEXT, 
-        email TEXT
-    )''')
+    c.execute("CREATE TABLE IF NOT EXISTS schedules (id INTEGER PRIMARY KEY, scan_time TEXT, email TEXT)")
     conn.commit()
     conn.close()
 
-init_db()  # Ensure database is set up
-
-@app.route("/")
-def home():
-    """Displays the home page."""
-    return render_template("index.html")
-
-@app.route("/run_scan", methods=["POST"])
-def run_scan():
-    """Runs an immediate vulnerability scan."""
-    run_vulnerability_scan()
-    return jsonify({"message": "Scan completed! Download the reports below."})
-
-@app.route("/schedule_scan", methods=["POST"])
-def schedule_scan():
-    """Stores the user's scheduled scan time and email in the database."""
-    scan_time = request.form.get("scan_time")
-    email = request.form.get("email")
-
-    if not scan_time or not email:
-        return jsonify({"error": "Scan time and email are required."}), 400
-
-    conn = sqlite3.connect("schedules.db")
+def save_schedule(scan_time, email):
+    """Saves the scheduled scan time and email securely."""
+    conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("DELETE FROM schedules")  # Allow only one schedule at a time
+    c.execute("DELETE FROM schedules")  # Only one schedule at a time
     c.execute("INSERT INTO schedules (scan_time, email) VALUES (?, ?)", (scan_time, email))
     conn.commit()
     conn.close()
 
-    return jsonify({"message": f"✅ Scan scheduled daily at {scan_time}. The report will be sent to {email} after the scan."})
+def get_scheduled_scan():
+    """Fetches the scheduled scan details from the database."""
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT scan_time, email FROM schedules LIMIT 1")
+    scheduled_info = c.fetchone()
+    conn.close()
+    return scheduled_info
 
-@app.route("/download/<file_type>")
-def download_file(file_type):
-    """Handles downloading of the generated reports."""
-    file_map = {
-        "pdf": "vulnerabilities_report.pdf",
+def check_reports_exist():
+    """Checks if all report files exist."""
+    return (os.path.exists("vulnerabilities_filtered.csv") and
+            os.path.exists("vulnerabilities_filtered.json") and
+            os.path.exists("vulnerabilities_report.pdf"))
+
+@app.route("/", methods=["POST", "GET"])
+def index():
+    """Handles the main page and user interactions."""
+    message = ""
+
+    if request.method == "POST":
+        if "run_scan" in request.form:
+            print("🚀 Running scan now...")
+            run_vulnerability_scan()
+            print("✅ Scan completed!")
+            message = "✅ Scan completed! Reports are ready for download."
+
+        elif "schedule_scan" in request.form:
+            scan_time = request.form.get("scan_time")
+            email = request.form.get("email")
+            if scan_time and email:
+                save_schedule(scan_time, email)
+                print(f"✅ Scan scheduled daily at {scan_time}. The report will be sent to {email}.")
+                message = f"✅ Scan scheduled daily at {scan_time}. The report will be sent to {email}."
+
+    return render_template("index.html", message=message)
+
+@app.route("/run_scan", methods=["POST"])
+def run_scan():
+    """Runs the scan immediately when the button is clicked."""
+    print("🚀 Running scan now...")
+    run_vulnerability_scan()
+    print("✅ Scan completed!")
+    return jsonify({"message": "Scan completed!"})
+
+@app.route("/check_reports")
+def check_reports():
+    """API route for checking if reports are ready."""
+    return jsonify({"reports_ready": check_reports_exist()})
+
+@app.route("/delete_schedule", methods=["POST"])
+def delete_schedule():
+    """Deletes the scheduled scan entry from the database."""
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("DELETE FROM schedules")
+    conn.commit()
+    conn.close()
+    return redirect("/")
+
+@app.route("/download/<filetype>")
+def download_file(filetype):
+    """Serves the requested report file."""
+    file_mapping = {
         "csv": "vulnerabilities_filtered.csv",
         "json": "vulnerabilities_filtered.json",
-        "html": "vulnerabilities_report.html",
+        "pdf": "vulnerabilities_report.pdf"
     }
-    if file_type in file_map and os.path.exists(file_map[file_type]):
-        return send_file(file_map[file_type], as_attachment=True)
+
+    if filetype in file_mapping:
+        file_path = os.path.join(os.getcwd(), file_mapping[filetype])
+
+        if os.path.exists(file_path):
+            return send_file(file_path, as_attachment=True)
+        else:
+            return f"❌ Error: {file_mapping[filetype]} not found.", 404
     else:
-        return jsonify({"error": "File not found"}), 404
+        return "❌ Error: Invalid file type requested.", 400
 
 if __name__ == "__main__":
     app.run(debug=True)
