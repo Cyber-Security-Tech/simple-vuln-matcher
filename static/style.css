@@ -1,0 +1,117 @@
+/* 🌟 General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* 🔹 Centered Container */
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 🔷 Headings */
+h1, h2 {
+    color: #343a40;
+    margin-bottom: 10px;
+}
+
+/* 📌 Horizontal Line Separators */
+hr {
+    border: 0;
+    height: 1px;
+    background: #ddd;
+    margin: 25px 0;
+}
+
+/* 🖱️ Buttons */
+button {
+    padding: 12px 18px;
+    font-size: 16px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+/* 🔄 Loading & Status Messages */
+p {
+    font-weight: bold;
+}
+
+#loading {
+    display: none;
+    font-weight: bold;
+    color: #ff6600;
+    margin: 10px;
+}
+
+#report-message {
+    font-weight: bold;
+    color: #dc3545;
+}
+
+/* 📂 Report Download Section */
+#report-links {
+    display: none;
+    padding: 10px;
+    background: #e9ecef;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+a button {
+    background: #28a745;
+}
+
+a button:hover {
+    background: #218838;
+}
+
+/* 🕒 Form Styling */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: left;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 400px;
+    margin: auto;
+}
+
+/* ✍ Input Fields */
+input {
+    padding: 8px;
+    margin: 5px 0 15px 0; /* Ensures spacing between inputs */
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    width: 100%;
+}
+/* 🔄 Spinning Animation for Loading Indicator */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}

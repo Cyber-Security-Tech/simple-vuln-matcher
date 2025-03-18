@@ -4,58 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vulnerability Scanner</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1, h2 {
-            color: #343a40;
-        }
-        form {
-            margin: 20px 0;
-            padding: 15px;
-            background: #e9ecef;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        p {
-            font-weight: bold;
-        }
-        #loading {
-            display: none;
-            font-weight: bold;
-            color: #ff6600;
-            margin: 10px;
-        }
-        #report-message {
-            font-weight: bold;
-            color: #dc3545;
-        }
-        #report-links {
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
     <script>
         async function startScan() {
             document.getElementById("loading").style.display = "block";
@@ -90,17 +39,18 @@
 </head>
 <body>
     <div class="container">
-        <h1>Vulnerability Scanner</h1>
+        <h1>🔍 Vulnerability Scanner</h1>
+        <p>Click below to start scanning for vulnerabilities.</p>
+        <button onclick="startScan()">🔍 Start Scan</button>
 
-        <!-- Run Scan Now -->
-        <h2>Run Scan Now</h2>
-        <button onclick="startScan()">Run Scan Now</button>
+        <p id="loading">
+            <span class="spinner">🔄</span> Running scan... Please wait.
+        </p>
+        
 
-        <!-- Loading Indicator -->
-        <p id="loading">🔄 Running scan... Please wait.</p>
+        <hr> <!-- 👈 Thin separator for visual clarity -->
 
-        <!-- Download Reports -->
-        <h2>Download Reports</h2>
+        <h2>📂 Download Reports</h2>
         <p id="report-message">📂 Reports will be available when ready.</p>
         <div id="report-links">
             <p>Click below to download the latest reports:</p>
@@ -109,20 +59,24 @@
             <a href="/download/pdf"><button>Download PDF</button></a>
         </div>
 
-        <!-- Schedule a Daily Scan -->
-        <h2>Schedule a Daily Scan</h2>
+        <hr> <!-- 👈 Another separator for clarity -->
+
+        <h2>📅 Schedule a Daily Scan</h2>
         <form method="post" action="/">
-            <label for="scan_time">Select Time (HH:MM 24hr):</label>
-            <input type="time" id="scan_time" name="scan_time" required>
             <label for="email">Enter Email:</label>
             <input type="email" id="email" name="email" required>
-            <button type="submit" name="schedule_scan">Schedule Scan</button>
+
+            <label for="scan_time">Select Time (HH:MM 24hr):</label>
+            <input type="time" id="scan_time" name="scan_time" required>
+
+            <button type="submit" name="schedule_scan">📅 Schedule Scan</button>
         </form>
 
-        <!-- Cancel Scheduled Scan -->
-        <h2>Cancel Scheduled Scan</h2>
+        <hr> <!-- 👈 Separator before cancel button -->
+
+        <p>❌ If you want to stop the scheduled scan, click below:</p>
         <form method="post" action="/delete_schedule">
-            <button type="submit">Cancel Scheduled Scan</button>
+            <button type="submit">🚫 Cancel Scan</button>
         </form>
     </div>
 </body>
